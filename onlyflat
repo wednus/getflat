@@ -5,9 +5,8 @@
 # PLATFORM: RPi, Tinkerboard, and other ARM-based SBC
 # PURPOSE: Install/upgrade flat
 #
-# set -n   # Uncomment to check your syntax, without execution.			#
-#          # NOTE: Do not forget to put the comment back in or			#
-#          #       the shell script will not execute!				#
+# set -n   # Uncomment to check your syntax, without execution.
+#          # NOTE: Do not forget to put the comment back in or the shell script will not execute!
 # set -x   # Uncomment to debug this shell script (Korn shell only)
 
 version='1.0'
