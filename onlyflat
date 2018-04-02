@@ -29,7 +29,7 @@ install_flat(){
   echo "\n${YELLOW}[flat]${NC} Accessing $HOME/docker-compose.yaml file.."
   if [ -f $HOME/docker-compose.yaml ]; then
     echo "\n${YELLOW}[flat]${NC} docker-compose.yaml already exist. Creating backup (docker-compose_old.yaml).."
-    mv $HOME/docker-compose.yaml $HOME/docker-compose_old.yaml
+    mv $HOME/docker-compose.yaml $HOME/docker-compose_old_$(date +'%m%d%y').yaml
   fi
   echo "flat:
   container_name: flat
