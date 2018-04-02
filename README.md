@@ -24,6 +24,7 @@ docker-compose version
 # onlyflat
 This script is meant for OS with docker installed already to add flat-only via:
 >curl http://host.wednus.com/onlyflat | sh
+
 This script will add the following configuration to docker-compose.yaml in $HOME directory:
 ```
 flat:
