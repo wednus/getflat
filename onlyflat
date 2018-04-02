@@ -1,0 +1,65 @@
+#!/bin/sh
+# SCRIPT: onlyflat(.sh)
+# NAME: flat Installation Wizard for SBC (flat-only)
+# AUTHOR: Sundew Shin - sundew@wednus.com
+# PLATFORM: RPi, Tinkerboard, and other ARM-based SBC
+# PURPOSE: Install/upgrade flat
+#
+# set -n   # Uncomment to check your syntax, without execution.			#
+#          # NOTE: Do not forget to put the comment back in or			#
+#          #       the shell script will not execute!				#
+# set -x   # Uncomment to debug this shell script (Korn shell only)
+
+version='1.0'
+YELLOW='\033[1;93m'
+RED='\033[1;91m'
+NC='\033[0m' # No Color
+set -e
+
+echo "\n\033[1;37m  WELCOME to flat-only Installation Wizard.${NC} (v$version)"
+
+if [ $(id -u) -eq 0 ]; then
+  printf >&2 '\n${RED}[flat]${NC} %s requires non-root user. (e.g. pi)\n' "$0"
+  exit 1
+fi
+cd $HOME
+
+install_flat(){
+  echo "\n${YELLOW}[flat]${NC} Preparing flat.."
+  echo "\n${YELLOW}[flat]${NC} Accessing $HOME/docker-compose.yaml file.."
+  if [ -f $HOME/docker-compose.yaml ]; then
+    echo "\n${YELLOW}[flat]${NC} docker-compose.yaml already exist. Creating backup (docker-compose_old.yaml).."
+    mv $HOME/docker-compose.yaml $HOME/docker-compose_old.yaml
+  fi
+  echo "flat:
+  container_name: flat
+  image: flab/flat
+  volumes:
+    - flat-data:/data
+    - /var/run/docker.sock:/var/run/docker.sock
+  ports:
+    - 9000:9000
+  restart: always" >> docker-compose.yaml
+  echo "\n${YELLOW}[flat]${NC} Installing flat.."
+  docker rmi flab/flat
+  docker-compose up -d
+  if [ ! "$(docker ps -q -f name=flat)" ]; then
+    echo "\n${YELLOW}[flat]${NC} flat installation failed."
+    exit 1
+  fi
+}
+
+finalize(){
+  #ip=ifconfig | awk '/inet addr/{print substr($2,6)}'
+  echo "\n${YELLOW}[flat]${NC} All done. Congratulations!\nNow you can use flat at http://localhost:9000.\n"
+}
+
+do_install(){
+  install_flat
+  finalize
+  exit 0
+}
+
+# wrapped up in a function so that we have some protection against only getting
+# half the file during "curl | sh"
+do_install
