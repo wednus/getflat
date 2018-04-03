@@ -44,3 +44,6 @@ If you feel comfortable editing docker-compose.yaml, you don't need this script,
 docker-compose up -d
 ```
 Then visit http://[IP of SBC]:9000 for start using flat.
+
+# Using flat
+http://flat.wednus.com
