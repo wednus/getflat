@@ -4,6 +4,7 @@
 # AUTHOR: Sundew Shin - sundew@wednus.com
 # PLATFORM: RPi, Tinkerboard, and other ARM-based SBC
 # PURPOSE: Install/upgrade docker, docker-compose, and flat
+# CONTRIBUTION: https://github.com/pipcc/getflat
 #
 # set -n   # Uncomment to check your syntax, without execution.
 #          # NOTE: Do not forget to put the comment back in or the shell script will not execute!
