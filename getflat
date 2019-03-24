@@ -1,26 +1,27 @@
 #!/bin/sh
 # SCRIPT: getflat(.sh)
-# NAME: flat Installation Wizard for SBC
+# DESCRIPTION: flat Installation Wizard for SBC
 # AUTHOR: Sundew Shin - sundew@wednus.com
 # PLATFORM: RPi, Tinkerboard, and other ARM-based SBC
 # PURPOSE: Install/upgrade docker, docker-compose, and flat
+# CONTRIBUTION: https://github.com/pipcc/getflat
 #
 # set -n   # Uncomment to check your syntax, without execution.
 #          # NOTE: Do not forget to put the comment back in or the shell script will not execute!
 # set -x   # Uncomment to debug this shell script (Korn shell only)
 
-version='1.0'
+version='1.1'
 YELLOW='\033[1;93m'
 RED='\033[1;91m'
 NC='\033[0m' # No Color
 set -e
 
-echo "\n\033[1;37m  WELCOME to flat Installation Wizard.${NC} (v$version)"
+echo "\n\033[1;37mflat Installation Wizard${NC} (v$version)"
 
-if [ $(id -u) -eq 0 ]; then
-  printf >&2 '\n${RED}[flat]${NC} %s requires non-root user. (e.g. pi)\n' "$0"
-  exit 1
-fi
+#if [ $(id -u) -eq 0 ]; then
+#  printf >&2 '\n${RED}[flat]${NC} %s requires non-root user. (e.g. pi)\n' "$0"
+#  exit 1
+#fi
 cd $HOME
 
 install_docker(){
@@ -28,6 +29,10 @@ install_docker(){
   #sudo apt-get update >/dev/null && sudo apt-get upgrade -y > /dev/null
   echo "\n${YELLOW}[flat]${NC} Installing Docker.."
   curl -sSL https://get.docker.com | sh
+  #echo "\n${YELLOW}[flat]${NC} Downgrade to v17.12.."
+  #sudo apt-get install docker-ce=17.12.1~ce-0~raspbian -y --force-yes #--allow-downgrades
+  echo "\n${YELLOW}[flat]${NC} Downgrade to v18.06.1.."
+  sudo apt-get install docker-ce=18.06.1~ce~3-0~raspbian -y --force-yes #--allow-downgrades
   #confirm docker installation
   docker -v
   if [ $? -ne 0 ]; then
@@ -37,6 +42,7 @@ install_docker(){
   echo "\n${YELLOW}[flat]${NC} Add $USER to docker group.."
   sudo usermod -aG docker $USER
 }
+
 
 install_docker_compose(){
   echo "\n${YELLOW}[flat]${NC} Installing docker-compose.."
@@ -50,39 +56,55 @@ install_docker_compose(){
   fi
 }
 
+
 install_flat(){
   echo "\n${YELLOW}[flat]${NC} Preparing flat.."
   echo "\n${YELLOW}[flat]${NC} Accessing $HOME/docker-compose.yaml file.."
   if [ -f $HOME/docker-compose.yaml ]; then
     echo "\n${YELLOW}[flat]${NC} docker-compose.yaml already exist. Creating backup (docker-compose_old.yaml).."
-    mv $HOME/docker-compose.yaml $HOME/docker-compose_old_$(date +'%m%d%y').yaml
+    mv $HOME/docker-compose.yaml $HOME/docker-compose_old_$(date +'%m%d%y_%H%M%S').yaml
   fi
-  echo "flat:
-  container_name: flat
-  image: flab/flat
-  volumes:
-    - flat-data:/data
-    - /var/run/docker.sock:/var/run/docker.sock
-  ports:
-    - 9000:9000
-  restart: always" >> docker-compose.yaml
+  echo "version: '2'
+services:
+  flat:
+    container_name: flat
+    image: flab/flat
+    volumes:
+      - flat-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 9000:9000
+    restart: always
+
+volumes:
+  flat-data:" >> docker-compose.yaml
   echo "\n${YELLOW}[flat]${NC} Installing flat.."
   sg docker -c "docker-compose up -d"
-  if [ ! "$(docker ps -q -f name=flat)" ]; then
+  if [ ! "$(sudo docker ps -q -f name=flat)" ]; then
     echo "\n${YELLOW}[flat]${NC} flat installation failed."
     exit 1
   fi
 }
+
+
+install_en_locale(){
+  echo "\n${YELLOW}[flat]${NC} Adding en_US.UTF-8 locale.."
+  sudo sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+  sudo locale-gen
+}
+
 
 finalize(){
   #ip=ifconfig | awk '/inet addr/{print substr($2,6)}'
   echo "\n${YELLOW}[flat]${NC} All done. Congratulations!\nNow, meet flat at http://localhost:9000.\n"
 }
 
+
 do_install(){
   install_docker
   install_docker_compose
   install_flat
+  install_en_locale
   finalize
   exit 0
 }
